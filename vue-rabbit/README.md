@@ -1056,3 +1056,937 @@ const categoryStore = useCategoryStore()
 ```
 
 # Home
+
+在views-home-components-HomeCategory.vue,HomeCategory.vue,HomeBanner.vue,HomeNew.vue,HomeHot.vue,HomeProduct.vue
+
+在views-home-index.vue引入
+
+```
+<script setup>
+import HomeCategory from './components/HomeCategory.vue'
+import HomeBanner from './components/HomeBanner.vue'
+import HomeNew from './components/HomeNew.vue'
+import HomeHot from './components/HomeHot.vue'
+import HomeProduct from './components/HomeProduct.vue'
+</script>
+
+<template>
+  <div class="container">
+    <HomeCategory />
+    <HomeBanner />
+  </div>
+  <HomeNew />
+  <HomeHot />
+  <HomeProduct />
+</template>
+```
+
+## HomeCategory.vue
+
+在HomeCategory.vue中
+
+```
+<script setup>
+import { useCategoryStore } from '@/stores/category';
+const categoryStore = useCategoryStore()
+</script>
+
+<template>
+  <div class="home-category">
+    <ul class="menu">
+      <li v-for="item in categoryStore.categoryList" :key="item.id">
+        <RouterLink to="/">{{ item.name }}</RouterLink>
+        <RouterLink v-for="i in item.children.slice(0, 2)" :key="i.id" to="/">{{ i.name }}</RouterLink>
+        <!-- 弹层layer位置 -->
+        <div class="layer">
+          <h4>分类推荐 <small>根据您的购买或浏览记录推荐</small></h4>
+          <ul>
+            <li v-for="i in item.goods" :key="i.id">
+              <RouterLink to="/">
+                <img :src="i.picture" alt="" />
+                <div class="info">
+                  <p class="name ellipsis-2">
+                    {{ i.name }}
+                  </p>
+                  <p class="desc ellipsis">{{ i.desc }}</p>
+                  <p class="price"><i>¥</i>{{ i.price }}</p>
+                </div>
+              </RouterLink>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+</template>
+
+
+<style scoped lang='scss'>
+.home-category {
+  width: 250px;
+  height: 500px;
+  background: rgba(0, 0, 0, 0.8);
+  position: relative;
+  z-index: 99;
+
+  .menu {
+    li {
+      padding-left: 40px;
+      height: 55px;
+      line-height: 55px;
+
+      &:hover {
+        background: $xtxColor;
+      }
+
+      a {
+        margin-right: 4px;
+        color: #fff;
+
+        &:first-child {
+          font-size: 16px;
+        }
+      }
+
+      .layer {
+        width: 990px;
+        height: 500px;
+        background: rgba(255, 255, 255, 0.8);
+        position: absolute;
+        left: 250px;
+        top: 0;
+        display: none;
+        padding: 0 15px;
+
+        h4 {
+          font-size: 20px;
+          font-weight: normal;
+          line-height: 80px;
+
+          small {
+            font-size: 16px;
+            color: #666;
+          }
+        }
+
+        ul {
+          display: flex;
+          flex-wrap: wrap;
+
+          li {
+            width: 310px;
+            height: 120px;
+            margin-right: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background: #fff;
+
+            &:nth-child(3n) {
+              margin-right: 0;
+            }
+
+            a {
+              display: flex;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              padding: 10px;
+
+              &:hover {
+                background: #e3f9f4;
+              }
+
+              img {
+                width: 95px;
+                height: 95px;
+              }
+
+              .info {
+                padding-left: 10px;
+                line-height: 24px;
+                overflow: hidden;
+
+                .name {
+                  font-size: 16px;
+                  color: #666;
+                }
+
+                .desc {
+                  color: #999;
+                }
+
+                .price {
+                  font-size: 22px;
+                  color: $priceColor;
+
+                  i {
+                    font-size: 16px;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 关键样式  hover状态下的layer盒子变成block
+      &:hover {
+        .layer {
+          display: block;
+        }
+      }
+    }
+  }
+}
+</style>
+```
+
+## HomeBanner.vue
+
+在HomBanner.vue中
+
+```
+<script setup>
+
+</script>
+
+
+
+<template>
+  <div class="home-banner">
+    <el-carousel height="500px">
+      <el-carousel-item v-for="item in 4" :key="item">
+        <img
+          src="http://yjy-xiaotuxian-dev.oss-cn-beijing.aliyuncs.com/picture/2021-04-15/6d202d8e-bb47-4f92-9523-f32ab65754f4.jpg"
+          alt="">
+      </el-carousel-item>
+    </el-carousel>
+  </div>
+</template>
+
+
+
+<style scoped lang='scss'>
+.home-banner {
+  width: 1240px;
+  height: 500px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 98;
+
+  img {
+    width: 100%;
+    height: 500px;
+  }
+}
+</style>
+```
+
+在api封装接口
+
+在api-home.js
+
+```
+import{httpInstance} from "@/utils/http"
+
+
+export function getBannerAPI(){
+  return httpInstance({
+    url:'home/banner'
+  })
+}
+```
+
+在HomBanner.vue中
+
+```
+<script setup>
+import { getBannerAPI } from '@/apis/home';
+import { onMounted, ref } from 'vue';
+const bannerList = ref([])
+const getBanner = async () => {
+  const res = await getBannerAPI()
+  bannerList.value = res.result
+  console.log(res)
+}
+onMounted(() => getBanner())
+</script>
+
+
+
+<template>
+  <div class="home-banner">
+    <el-carousel height="500px">
+      <el-carousel-item v-for="item in bannerList" :key="item.id">
+        <img :src=item.imgUrl alt="">
+      </el-carousel-item>
+    </el-carousel>
+  </div>
+</template>
+
+
+
+<style scoped lang='scss'>
+.home-banner {
+  width: 1240px;
+  height: 500px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 98;
+
+  img {
+    width: 100%;
+    height: 500px;
+  }
+}
+</style>
+```
+
+## 面板组件封装
+
+在views-home-components-HomePanel.vue
+
+```
+<script setup>
+defineProps({
+  //主标题
+  title: {
+    type: String
+  },
+  //副标题
+  subTitle: {
+    type: String
+  }
+})
+</script>
+
+
+<template>
+  <div class="home-panel">
+    <div class="container">
+      <div class="head">
+        <!-- 主标题和副标题 -->
+        <h3>
+          {{ title }}<small>{{ subTitle }}</small>
+        </h3>
+      </div>
+      <!-- 主体内容区域 -->
+      <slot></slot>
+    </div>
+  </div>
+</template>
+
+<style scoped lang='scss'>
+.home-panel {
+  background-color: #fff;
+
+  .head {
+    padding: 40px 0;
+    display: flex;
+    align-items: flex-end;
+
+    h3 {
+      flex: 1;
+      font-size: 32px;
+      font-weight: normal;
+      margin-left: 6px;
+      height: 35px;
+      line-height: 35px;
+
+      small {
+        font-size: 16px;
+        color: #999;
+        margin-left: 20px;
+      }
+    }
+  }
+}
+</style>
+```
+
+测试封装的组件
+
+直接在index.vue中
+
+```
+<script setup>
+import HomeCategory from './components/HomeCategory.vue'
+import HomeBanner from './components/HomeBanner.vue'
+import HomeNew from './components/HomeNew.vue'
+import HomeHot from './components/HomeHot.vue'
+import HomeProduct from './components/HomeProduct.vue'
+import HomePanel from './components/HomePanel.vue'
+</script>
+
+<template>
+  <div class="container">
+    <HomeCategory />
+    <HomeBanner />
+  </div>
+  <HomeNew />
+  <HomeHot />
+  <HomeProduct />
+  <HomePanel title="新鲜" sub-title="不新鲜">
+    <div>插槽</div>
+  </HomePanel>
+  <HomePanel title="新鲜" sub-title="不新鲜">
+    <div>插槽</div>
+  </HomePanel>
+</template>
+```
+
+## HomeNew.vue
+
+在apis-home.js中
+
+```
+export function findNewAPI(){
+  return httpInstance({
+    url:'/home/new'
+  })
+}
+```
+
+在views-Home-components-HomeNew.vue
+
+```
+<script setup>
+import HomePanel from './HomePanel.vue';
+import { findNewAPI } from "@/apis/home"
+import { onMounted, ref } from 'vue';
+const newList = ref([])
+const getNewList = async () => {
+  const res = await findNewAPI()
+  newList.value = res.result
+}
+onMounted(() => getNewList())
+</script>
+
+<template>
+  <HomePanel title="新鲜好物" sub-title="新鲜出炉 品质靠谱">
+    <!--  下面是插槽主体内容模版 -->
+    <ul class="goods-list">
+      <li v-for="item in newList" :key="item.id">
+        <RouterLink to="/">
+          <img :src="item.picture" alt="" />
+          <p class="name">{{ item.name }}</p>
+          <p class="price">&yen;{{ item.price }}</p>
+        </RouterLink>
+      </li>
+    </ul>
+  </HomePanel>
+</template>
+
+
+<style scoped lang='scss'>
+.goods-list {
+  display: flex;
+  justify-content: space-between;
+  height: 406px;
+
+  li {
+    width: 306px;
+    height: 406px;
+
+    background: #f0f9f4;
+    transition: all .5s;
+
+    &:hover {
+      transform: translate3d(0, -3px, 0);
+      box-shadow: 0 3px 8px rgb(0 0 0 / 20%);
+    }
+
+    img {
+      width: 306px;
+      height: 306px;
+    }
+
+    p {
+      font-size: 22px;
+      padding-top: 12px;
+      text-align: center;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .price {
+      color: $priceColor;
+    }
+  }
+}
+</style>
+```
+
+## HomeHot.vue
+
+在apis-home.js
+
+```
+export const getHotAPI = () => {
+  return  httpInstance({
+    url:'home/hot'
+  })
+}
+```
+
+在views-Home-components-HomeHot.vue
+
+```
+<script setup>
+import HomePanel from './HomePanel.vue'
+import { getHotAPI } from '@/apis/home'
+import { onMounted, ref } from 'vue'
+const hotList = ref([])
+const getHotList = async () => {
+  const res = await getHotAPI()
+  hotList.value = res.result
+}
+onMounted(() => getHotList())
+
+</script>
+
+<template>
+  <HomePanel title="人气推荐" sub-title="人气爆款 不容错过">
+    <ul class="goods-list">
+      <li v-for="item in hotList" :key="item.id">
+        <RouterLink to="/">
+          <img :src="item.picture" alt="">
+          <p class="name">{{ item.title }}</p>
+          <p class="desc">{{ item.alt }}</p>
+        </RouterLink>
+      </li>
+    </ul>
+  </HomePanel>
+</template>
+
+<style scoped lang='scss'>
+.goods-list {
+  display: flex;
+  justify-content: space-between;
+  height: 426px;
+
+  li {
+    width: 306px;
+    height: 406px;
+    transition: all .5s;
+
+    &:hover {
+      transform: translate3d(0, -3px, 0);
+      box-shadow: 0 3px 8px rgb(0 0 0 / 20%);
+    }
+
+    img {
+      width: 306px;
+      height: 306px;
+    }
+
+    p {
+      font-size: 22px;
+      padding-top: 12px;
+      text-align: center;
+    }
+
+    .desc {
+      color: #999;
+      font-size: 18px;
+    }
+  }
+}
+</style>
+```
+
+## 懒加载实现
+
+在main.js中
+
+```
+//定义全局指令
+app.directive('img-lazy',{
+  mounted(el,binding){
+    //el:指令绑定的元素
+    //binding:指令等号后面绑定的表达式的值
+    console.log(el,binding.value)
+  }
+})
+```
+
+在views-Home-components-HomeHot.vue先测试
+
+```
+<template>
+  <HomePanel title="人气推荐" sub-title="人气爆款 不容错过">
+    <ul class="goods-list">
+      <li v-for="item in hotList" :key="item.id">
+        <RouterLink to="/">
+          <img v-img-lazy="item.picture"  alt="">
+          <p class="name">{{ item.title }}</p>
+          <p class="desc">{{ item.alt }}</p>
+        </RouterLink>
+      </li>
+    </ul>
+  </HomePanel>
+</template>
+```
+
+在main.js中完成
+
+```
+import { useIntersectionObserver } from '@vueuse/core'
+//定义全局指令
+app.directive('img-lazy',{
+  mounted(el,binding){
+    //el:指令绑定的元素
+    //binding:指令等号后面绑定的表达式的值
+    useIntersectionObserver(
+      el,
+      ([{ isIntersecting }]) => {
+        if(isIntersecting){
+          //进入视口
+          el.src=binding.value
+        }
+      },
+    )
+  }
+})
+```
+
+优化懒加载指令
+
+在directives-index.js,将之前在main.js中的删除
+
+```
+import { useIntersectionObserver } from '@vueuse/core'
+//定义懒加载插件
+export const lazyPlugin={
+  install(app){
+    //定义全局指令
+    app.directive('img-lazy',{
+      mounted(el,binding){
+        //el:指令绑定的元素
+        //binding:指令等号后面绑定的表达式的值
+        useIntersectionObserver(
+          el,
+          ([{ isIntersecting }]) => {
+            if(isIntersecting){
+              //进入视口
+              el.src=binding.value
+            }
+          },
+        )
+      }
+    })
+  }
+}
+```
+
+在main.js引入注册
+
+```
+//引入懒加载插件并注册
+import { lazyPlugin } from './directives'
+app.use(lazyPlugin)
+```
+
+优化重复监听,在directives-index.js
+
+```
+import { useIntersectionObserver } from '@vueuse/core'
+//定义懒加载插件
+export const lazyPlugin={
+  install(app){
+    //定义全局指令
+    app.directive('img-lazy',{
+      mounted(el,binding){
+        //el:指令绑定的元素
+        //binding:指令等号后面绑定的表达式的值
+        const {stop}= useIntersectionObserver(
+          el,
+          ([{ isIntersecting }]) => {
+          //console.log(isIntersecting)
+            if(isIntersecting){
+              //进入视口
+              el.src=binding.value
+              stop()
+            }
+          },
+        )
+      }
+    })
+  }
+}
+```
+
+## HomeProduct.vue
+
+封装接口在apis-home.js
+
+```
+export const getGoodsAPI = () => {
+  return httpInstance({
+    url: '/home/goods'
+  })
+}
+```
+
+在views-Home-components-HomeProduct.vue
+
+```
+<script setup>
+import HomePanel from './HomePanel.vue'
+import { getGoodsAPI } from '@/apis/home';
+import { onMounted, ref } from 'vue';
+const goodsProduct = ref([])
+const getGoods = async () => {
+  const res = await getGoodsAPI()
+  goodsProduct.value = res.result
+  //console.log(res)
+}
+onMounted(() => getGoods())
+</script>
+
+<template>
+  <div class="home-product">
+    <HomePanel :title="cate.name" v-for="cate in goodsProduct" :key="cate.id">
+      <div class="box">
+        <RouterLink class="cover" to="/">
+          <img v-img-lazy="cate.picture" />
+          <strong class="label">
+            <span>{{ cate.name }}馆</span>
+            <span>{{ cate.saleInfo }}</span>
+          </strong>
+        </RouterLink>
+        <ul class="goods-list">
+          <li v-for="good in cate.goods" :key="good.id">
+            <RouterLink to="/" class="goods-item">
+              <img v-img-lazy="good.picture" alt="" />
+              <p class="name ellipsis">{{ good.name }}</p>
+              <p class="desc ellipsis">{{ good.desc }}</p>
+              <p class="price">&yen;{{ good.price }}</p>
+            </RouterLink>
+          </li>
+        </ul>
+      </div>
+    </HomePanel>
+  </div>
+</template>
+
+<style scoped lang='scss'>
+.home-product {
+  background: #fff;
+  margin-top: 20px;
+
+  .sub {
+    margin-bottom: 2px;
+
+    a {
+      padding: 2px 12px;
+      font-size: 16px;
+      border-radius: 4px;
+
+      &:hover {
+        background: $xtxColor;
+        color: #fff;
+      }
+
+      &:last-child {
+        margin-right: 80px;
+      }
+    }
+  }
+
+  .box {
+    display: flex;
+
+    .cover {
+      width: 240px;
+      height: 610px;
+      margin-right: 10px;
+      position: relative;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+
+      .label {
+        width: 188px;
+        height: 66px;
+        display: flex;
+        font-size: 18px;
+        color: #fff;
+        line-height: 66px;
+        font-weight: normal;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translate3d(0, -50%, 0);
+
+        span {
+          text-align: center;
+
+          &:first-child {
+            width: 76px;
+            background: rgba(0, 0, 0, 0.9);
+          }
+
+          &:last-child {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.7);
+          }
+        }
+      }
+    }
+
+    .goods-list {
+      width: 990px;
+      display: flex;
+      flex-wrap: wrap;
+
+      li {
+        width: 240px;
+        height: 300px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+
+        &:nth-last-child(-n + 4) {
+          margin-bottom: 0;
+        }
+
+        &:nth-child(4n) {
+          margin-right: 0;
+        }
+      }
+    }
+
+    .goods-item {
+      display: block;
+      width: 220px;
+      padding: 20px 30px;
+      text-align: center;
+      transition: all .5s;
+
+      &:hover {
+        transform: translate3d(0, -3px, 0);
+        box-shadow: 0 3px 8px rgb(0 0 0 / 20%);
+      }
+
+      img {
+        width: 160px;
+        height: 160px;
+      }
+
+      p {
+        padding-top: 10px;
+      }
+
+      .name {
+        font-size: 16px;
+      }
+
+      .desc {
+        color: #999;
+        height: 29px;
+      }
+
+      .price {
+        color: $priceColor;
+        font-size: 20px;
+      }
+    }
+  }
+}
+</style>
+```
+
+## 封装GoodsItem组件
+
+在views-Home-components-GoodsItem.vue
+
+```
+<script setup>
+defineProps({
+  goods: {
+    type: Object,
+    default: () => { }
+  }
+})
+</script>
+
+<template>
+  <RouterLink to="/" class="goods-item">
+    <img v-img-lazy="goods.picture" alt="" />
+    <p class="name ellipsis">{{ goods.name }}</p>
+    <p class="desc ellipsis">{{ goods.desc }}</p>
+    <p class="price">&yen;{{ goods.price }}</p>
+  </RouterLink>
+</template>
+
+
+<style scoped lang="scss">
+.goods-item {
+  display: block;
+  width: 220px;
+  padding: 20px 30px;
+  text-align: center;
+  transition: all .5s;
+
+  &:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow: 0 3px 8px rgb(0 0 0 / 20%);
+  }
+
+  img {
+    width: 160px;
+    height: 160px;
+  }
+
+  p {
+    padding-top: 10px;
+  }
+
+  .name {
+    font-size: 16px;
+  }
+
+  .desc {
+    color: #999;
+    height: 29px;
+  }
+
+  .price {
+    color: $priceColor;
+    font-size: 20px;
+  }
+}
+</style>
+```
+
+将views-Home-components-HomeProduct.vue部分替换
+
+```
+<template>
+  <div class="home-product">
+    <HomePanel :title="cate.name" v-for="cate in goodsProduct" :key="cate.id">
+      <div class="box">
+        <RouterLink class="cover" to="/">
+          <img v-img-lazy="cate.picture" />
+          <strong class="label">
+            <span>{{ cate.name }}馆</span>
+            <span>{{ cate.saleInfo }}</span>
+          </strong>
+        </RouterLink>
+        <ul class="goods-list">
+          <li v-for="goods in cate.goods" :key="goods.id">
+            <GoodsItems :goods="goods"></GoodsItems>
+          </li>
+        </ul>
+      </div>
+    </HomePanel>
+  </div>
+</template>
+```
+
