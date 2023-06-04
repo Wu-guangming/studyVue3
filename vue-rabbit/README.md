@@ -1990,3 +1990,569 @@ defineProps({
 </template>
 ```
 
+# 一级分类页
+
+## 路由传参
+
+在router-index.js
+
+```
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path:'/',
+      component:Layout,
+      children: [
+        {
+          path: '',
+          component: Home
+        },
+        {
+          path: 'category/:id',
+          component: Category
+        }
+      ]
+    },
+    {
+      path:'/login',
+      component:Login
+    }
+  
+  ]
+})
+```
+
+修改将views-Layout-components-LayoutHeader.vue
+
+```
+<template>
+  <header class='app-header'>
+    <div class="container">
+      <h1 class="logo">
+        <RouterLink to="/">小兔鲜</RouterLink>
+      </h1>
+      <ul class="app-header-nav">
+        <li class="home" v-for="item in categoryStore.categoryList" :key="item.id">
+          <RouterLink :to="`/category/${item.id}`">{{ item.name }}</RouterLink>
+        </li>
+      </ul>
+      <div class="search">
+        <i class="iconfont icon-search"></i>
+        <input type="text" placeholder="搜一搜">
+      </div>
+      <!-- 头部购物车 -->
+
+    </div>
+  </header>
+</template>
+```
+
+## 面包屑导航
+
+准备静态样式
+
+在views-Category-index.vue
+
+```
+<script setup>
+
+</script>
+
+<template>
+  <div class="top-category">
+    <div class="container m-top-20">
+      <!-- 面包屑 -->
+      <div class="bread-container">
+        <el-breadcrumb separator=">">
+          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+          <el-breadcrumb-item>居家</el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<style scoped lang="scss">
+.top-category {
+  h3 {
+    font-size: 28px;
+    color: #666;
+    font-weight: normal;
+    text-align: center;
+    line-height: 100px;
+  }
+
+  .sub-list {
+    margin-top: 20px;
+    background-color: #fff;
+
+    ul {
+      display: flex;
+      padding: 0 32px;
+      flex-wrap: wrap;
+
+      li {
+        width: 168px;
+        height: 160px;
+
+
+        a {
+          text-align: center;
+          display: block;
+          font-size: 16px;
+
+          img {
+            width: 100px;
+            height: 100px;
+          }
+
+          p {
+            line-height: 40px;
+          }
+
+          &:hover {
+            color: $xtxColor;
+          }
+        }
+      }
+    }
+  }
+
+  .ref-goods {
+    background-color: #fff;
+    margin-top: 20px;
+    position: relative;
+
+    .head {
+      .xtx-more {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+
+      .tag {
+        text-align: center;
+        color: #999;
+        font-size: 20px;
+        position: relative;
+        top: -20px;
+      }
+    }
+
+    .body {
+      display: flex;
+      justify-content: space-around;
+      padding: 0 40px 30px;
+    }
+  }
+
+  .bread-container {
+    padding: 25px 0;
+  }
+}
+</style>
+```
+
+封装接口
+
+在apis-category.js
+
+```
+import request from "@/utils/http"
+
+export function getCategoryAPI(id){
+  return request({
+    url:'/category',
+    params:{
+      id
+    }
+  })
+}
+```
+
+在views-Category-index.vue
+
+```
+<script setup>
+import { getCategoryAPI } from '@/apis/category';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+const categoryData = ref({})
+const route = useRoute()
+const getCategory = async () => {
+  const res = await getCategoryAPI(route.params.id)
+  //console.log(res)
+  categoryData.value = res.result
+
+}
+onMounted(() => getCategory())
+</script>
+
+<template>
+  <div class="top-category">
+    <div class="container m-top-20">
+      <!-- 面包屑 -->
+      <div class="bread-container">
+        <el-breadcrumb separator=">">
+          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ categoryData.name }}</el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+## 轮播图
+
+改造接口在apis-home.js
+
+```
+export function getBannerAPI (params = {}) {
+  // 默认为1 商品为2
+  const { distributionSite = '1' } = params
+  return httpInstance({
+    url: '/home/banner',
+    params: {
+      distributionSite
+    }
+  })
+}
+```
+
+在views-Category-index.vue
+
+```
+<script setup>
+import { getCategoryAPI } from '@/apis/category';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { getBannerAPI } from '@/apis/home';
+const categoryData = ref({})
+const route = useRoute()
+const getCategory = async () => {
+  const res = await getCategoryAPI(route.params.id)
+  //console.log(res)
+  categoryData.value = res.result
+
+}
+onMounted(() => getCategory())
+//获取banner
+const bannerList = ref([])
+
+const getBanner = async () => {
+  const res = await getBannerAPI({
+    distributionSite: '2'
+  })
+  console.log(res)
+  bannerList.value = res.result
+}
+
+onMounted(() => getBanner())
+
+</script>
+
+<template>
+  <div class="top-category">
+    <div class="container m-top-20">
+      <!-- 面包屑 -->
+      <div class="bread-container">
+        <el-breadcrumb separator=">">
+          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ categoryData.name }}</el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
+      <!-- 轮播图 -->
+      <div class="home-banner">
+        <el-carousel height="500px">
+          <el-carousel-item v-for="item in bannerList" :key="item.id">
+            <img :src="item.imgUrl" alt="">
+          </el-carousel-item>
+        </el-carousel>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<style scoped lang="scss">
+.top-category {
+  h3 {
+    font-size: 28px;
+    color: #666;
+    font-weight: normal;
+    text-align: center;
+    line-height: 100px;
+  }
+
+  .sub-list {
+    margin-top: 20px;
+    background-color: #fff;
+
+    ul {
+      display: flex;
+      padding: 0 32px;
+      flex-wrap: wrap;
+
+      li {
+        width: 168px;
+        height: 160px;
+
+
+        a {
+          text-align: center;
+          display: block;
+          font-size: 16px;
+
+          img {
+            width: 100px;
+            height: 100px;
+          }
+
+          p {
+            line-height: 40px;
+          }
+
+          &:hover {
+            color: $xtxColor;
+          }
+        }
+      }
+    }
+  }
+
+  .ref-goods {
+    background-color: #fff;
+    margin-top: 20px;
+    position: relative;
+
+    .head {
+      .xtx-more {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+
+      .tag {
+        text-align: center;
+        color: #999;
+        font-size: 20px;
+        position: relative;
+        top: -20px;
+      }
+    }
+
+    .body {
+      display: flex;
+      justify-content: space-around;
+      padding: 0 40px 30px;
+    }
+  }
+
+  .bread-container {
+    padding: 25px 0;
+  }
+}
+
+.home-banner {
+  width: 1240px;
+  height: 500px;
+  margin: 0 auto;
+
+  img {
+    width: 100%;
+    height: 500px;
+  }
+}
+</style>
+```
+
+## 导航激活设置
+
+在views-Layout-components-LayoutHeader.vue
+
+```
+<template>
+  <header class='app-header'>
+    <div class="container">
+      <h1 class="logo">
+        <RouterLink to="/">小兔鲜</RouterLink>
+      </h1>
+      <ul class="app-header-nav">
+        <li class="home" v-for="item in categoryStore.categoryList" :key="item.id">
+          <RouterLink active-class="active" :to="`/category/${item.id}`">{{ item.name }}</RouterLink>
+        </li>
+      </ul>
+      <div class="search">
+        <i class="iconfont icon-search"></i>
+        <input type="text" placeholder="搜一搜">
+      </div>
+      <!-- 头部购物车 -->
+
+    </div>
+  </header>
+</template>
+```
+
+同时在views-Layout-components-LayoutFixed.vue
+
+```
+<template>
+  <div class="app-header-sticky" :class="{ show: y > 78 }">
+    <div class="container">
+      <RouterLink class="logo" to="/" />
+      <!-- 导航区域 -->
+      <ul class="app-header-nav ">
+        <li class="home">
+          <RouterLink to="/">首页</RouterLink>
+        </li>
+        <li class="home" v-for="item in categoryStore.categoryList" :key="item.id">
+          <RouterLink active-class="active" :to="`/category/${item.id}`">{{ item.name }}</RouterLink>
+        </li>
+      </ul>
+
+      <div class="right">
+        <RouterLink to="/">品牌</RouterLink>
+        <RouterLink to="/">专题</RouterLink>
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+## 分类数据
+
+在views-Category-index.vue轮播图后加上
+
+```
+<div class="sub-list">
+        <h3>全部分类</h3>
+        <ul>
+          <li v-for="i in categoryData.children" :key="i.id">
+            <RouterLink to="/">
+              <img :src="i.picture" />
+              <p>{{ i.name }}</p>
+            </RouterLink>
+          </li>
+        </ul>
+      </div>
+      <div class="ref-goods" v-for="item in categoryData.children" :key="item.id">
+        <div class="head">
+          <h3>- {{ item.name }}-</h3>
+        </div>
+        <div class="body">
+          <GoodsItem v-for="good in item.goods" :goods="good" :key="good.id" />
+        </div>
+      </div>
+```
+
+## 解决路由缓存问题
+
+缓存问题：当路由path一样，参数不同的时候会选择直接复用路由对应的组件
+解决方案：
+
+给 routerv-view 添加key属性，破坏缓存
+
+在views-Layout-index.vue
+
+```
+<template>
+  <LayoutFixed />
+  <LayoutNav />
+  <LayoutHeader />
+  <RouterView :key="$route.fullPath" />
+  <LayoutFooter />
+</template>
+```
+
+使用 onBeforeRouteUpdate钩子函数，做精确更新
+
+在views-Category-index.js加入
+
+```
+<script setup>
+import { onBeforeRouteUpdate } from 'vue-router';
+
+onMounted(() => getCategory())
+//路由参数变化时,分类数据接口重新发送
+onBeforeRouteUpdate((to) => {
+  getCategory(to.params.id)
+})
+
+
+</script>
+```
+
+## 基于业务逻辑的函数拆分
+
+<img src="C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230604192545226.png" alt="image-20230604192545226" style="zoom:67%;" />
+
+在views-Category-composables-useBanner.js,useCategory.js
+
+views-Category-composables-useBanner.js
+
+```
+import { getBannerAPI } from '@/apis/home'
+import { onMounted, ref } from 'vue';
+//获取banner
+export function useBanner () {
+  const bannerList = ref([])
+
+  const getBanner = async () => {
+    const res = await getBannerAPI({
+      distributionSite: '2'
+    })
+    //console.log(res)
+    bannerList.value = res.result
+  }
+  
+  onMounted(() => getBanner())
+  return {
+    bannerList
+  }
+}
+```
+
+views-Category-composables-useCategory.js
+
+```
+import { getCategoryAPI } from '@/apis/category';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { onBeforeRouteUpdate } from 'vue-router';
+export function useCategory () {
+  const categoryData = ref({})
+  const route = useRoute()
+  const getCategory = async (id = route.params.id) => {
+    const res = await getCategoryAPI(id)
+    //console.log(res)
+    categoryData.value = res.result
+  
+  }
+  onMounted(() => getCategory())
+  //路由参数变化时,分类数据接口重新发送
+  onBeforeRouteUpdate((to) => {
+    getCategory(to.params.id)
+  })
+  return {
+    categoryData
+  }
+}
+```
+
+在views-Category-index.vue
+
+```
+<script setup>
+
+import GoodsItem from '../Home/components/GoodsItem.vue'
+import { useBanner } from './composables/useBanner'
+import { useCategory } from './composables/useCategory'
+const { bannerList } = useBanner()
+const { categoryData } = useCategory()
+
+</script>
+```
+
