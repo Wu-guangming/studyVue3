@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
+import  PiniaPluginPersistedState  from 'pinia-plugin-persistedstate'
 import App from './App.vue'
 import router from './router'
 //引入初始化样式文件
@@ -13,12 +13,14 @@ getCategoryAPI().then(res=>{
 }) */
 //引入懒加载插件并注册
 import { lazyPlugin } from './directives'
-const app = createApp(App)
+
 // 引入全局组件插件
 import { componentPlugin } from '@/components'
-
+const app = createApp(App)
+const pinia=createPinia()
+pinia.use(PiniaPluginPersistedState)
 app.use(componentPlugin)
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(lazyPlugin)
 app.mount('#app')

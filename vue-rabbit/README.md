@@ -4185,3 +4185,767 @@ export const componentPlugin = {
               <XtxSku :goods="goods" @change="skuChange"></XtxSku>
 ```
 
+# 登录页
+
+准备组件
+
+在views-Login-index.vue
+
+```
+<script setup>
+
+</script>
+
+
+<template>
+  <div>
+    <header class="login-header">
+      <div class="container m-top-20">
+        <h1 class="logo">
+          <RouterLink to="/">小兔鲜</RouterLink>
+        </h1>
+        <RouterLink class="entry" to="/">
+          进入网站首页
+          <i class="iconfont icon-angle-right"></i>
+          <i class="iconfont icon-angle-right"></i>
+        </RouterLink>
+      </div>
+    </header>
+    <section class="login-section">
+      <div class="wrapper">
+        <nav>
+          <a href="javascript:;">账户登录</a>
+        </nav>
+        <div class="account-box">
+          <div class="form">
+            <el-form label-position="right" label-width="60px" status-icon>
+              <el-form-item label="账户">
+                <el-input />
+              </el-form-item>
+              <el-form-item label="密码">
+                <el-input />
+              </el-form-item>
+              <el-form-item label-width="22px">
+                <el-checkbox size="large">
+                  我已同意隐私条款和服务条款
+                </el-checkbox>
+              </el-form-item>
+              <el-button size="large" class="subBtn">点击登录</el-button>
+            </el-form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="login-footer">
+      <div class="container">
+        <p>
+          <a href="javascript:;">关于我们</a>
+          <a href="javascript:;">帮助中心</a>
+          <a href="javascript:;">售后服务</a>
+          <a href="javascript:;">配送与验收</a>
+          <a href="javascript:;">商务合作</a>
+          <a href="javascript:;">搜索推荐</a>
+          <a href="javascript:;">友情链接</a>
+        </p>
+        <p>CopyRight &copy; 小兔鲜儿</p>
+      </div>
+    </footer>
+  </div>
+</template>
+
+<style scoped lang='scss'>
+.login-header {
+  background: #fff;
+  border-bottom: 1px solid #e4e4e4;
+
+  .container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .logo {
+    width: 200px;
+
+    a {
+      display: block;
+      height: 132px;
+      width: 100%;
+      text-indent: -9999px;
+      background: url("@/assets/images/logo.png") no-repeat center 18px / contain;
+    }
+  }
+
+  .sub {
+    flex: 1;
+    font-size: 24px;
+    font-weight: normal;
+    margin-bottom: 38px;
+    margin-left: 20px;
+    color: #666;
+  }
+
+  .entry {
+    width: 120px;
+    margin-bottom: 38px;
+    font-size: 16px;
+
+    i {
+      font-size: 14px;
+      color: $xtxColor;
+      letter-spacing: -5px;
+    }
+  }
+}
+
+.login-section {
+  background: url('@/assets/images/login-bg.png') no-repeat center / cover;
+  height: 488px;
+  position: relative;
+
+  .wrapper {
+    width: 380px;
+    background: #fff;
+    position: absolute;
+    left: 50%;
+    top: 54px;
+    transform: translate3d(100px, 0, 0);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+
+    nav {
+      font-size: 14px;
+      height: 55px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #f5f5f5;
+      display: flex;
+      padding: 0 40px;
+      text-align: right;
+      align-items: center;
+
+      a {
+        flex: 1;
+        line-height: 1;
+        display: inline-block;
+        font-size: 18px;
+        position: relative;
+        text-align: center;
+      }
+    }
+  }
+}
+
+.login-footer {
+  padding: 30px 0 50px;
+  background: #fff;
+
+  p {
+    text-align: center;
+    color: #999;
+    padding-top: 20px;
+
+    a {
+      line-height: 1;
+      padding: 0 10px;
+      color: #999;
+      display: inline-block;
+
+      ~a {
+        border-left: 1px solid #ccc;
+      }
+    }
+  }
+}
+
+.account-box {
+  .toggle {
+    padding: 15px 40px;
+    text-align: right;
+
+    a {
+      color: $xtxColor;
+
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .form {
+    padding: 0 20px 20px 20px;
+
+    &-item {
+      margin-bottom: 28px;
+
+      .input {
+        position: relative;
+        height: 36px;
+
+        >i {
+          width: 34px;
+          height: 34px;
+          background: #cfcdcd;
+          color: #fff;
+          position: absolute;
+          left: 1px;
+          top: 1px;
+          text-align: center;
+          line-height: 34px;
+          font-size: 18px;
+        }
+
+        input {
+          padding-left: 44px;
+          border: 1px solid #cfcdcd;
+          height: 36px;
+          line-height: 36px;
+          width: 100%;
+
+          &.error {
+            border-color: $priceColor;
+          }
+
+          &.active,
+          &:focus {
+            border-color: $xtxColor;
+          }
+        }
+
+        .code {
+          position: absolute;
+          right: 1px;
+          top: 1px;
+          text-align: center;
+          line-height: 34px;
+          font-size: 14px;
+          background: #f5f5f5;
+          color: #666;
+          width: 90px;
+          height: 34px;
+          cursor: pointer;
+        }
+      }
+
+      >.error {
+        position: absolute;
+        font-size: 12px;
+        line-height: 28px;
+        color: $priceColor;
+
+        i {
+          font-size: 14px;
+          margin-right: 2px;
+        }
+      }
+    }
+
+    .agree {
+      a {
+        color: #069;
+      }
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      height: 40px;
+      color: #fff;
+      text-align: center;
+      line-height: 40px;
+      background: $xtxColor;
+
+      &.disabled {
+        background: #cfcdcd;
+      }
+    }
+  }
+
+  .action {
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .url {
+      a {
+        color: #999;
+        margin-left: 10px;
+      }
+    }
+  }
+}
+
+.subBtn {
+  background: $xtxColor;
+  width: 100%;
+  color: #fff;
+}
+</style>
+```
+
+在views-Layout-components-LayoutNav.vue配置跳转
+
+```
+<template v-else>
+          <li><a href="javascript:;" @click="$router.push('/login')">请先登录</a></li>
+          <li><a href="javascript:;">帮助中心</a></li>
+          <li><a href="javascript:;">关于我们</a></li>
+        </template>
+```
+
+表单校验在views-Login-index.vue
+
+```
+<script setup>
+import { ref } from 'vue'
+// 表单数据对象
+const form = ref({
+  account: '',
+  password: '',
+  agree: true
+})
+
+// 规则数据对象
+const rules = {
+  account: [
+    { required: true, message: '用户名不能为空', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '密码不能为空', trigger: 'blur' },
+    { min: 6, max: 24, message: '密码长度要求6-14个字符', trigger: 'blur' }
+  ],
+  agree: [
+    {
+      validator: (rule, val, callback) => {
+        return val ? callback() : new Error('请先同意协议')
+      }
+    }
+  ]
+}
+
+
+</script>
+
+
+
+<template>
+  <div>
+    <header class="login-header">
+      <div class="container m-top-20">
+        <h1 class="logo">
+          <RouterLink to="/">小兔鲜</RouterLink>
+        </h1>
+        <RouterLink class="entry" to="/">
+          进入网站首页
+          <i class="iconfont icon-angle-right"></i>
+          <i class="iconfont icon-angle-right"></i>
+        </RouterLink>
+      </div>
+    </header>
+    <section class="login-section">
+      <div class="wrapper">
+        <nav>
+          <a href="javascript:;">账户登录</a>
+        </nav>
+        <div class="account-box">
+          <div class="form">
+            <el-form :model="form" :rules="rules" label-position="right" label-width="60px" status-icon>
+              <el-form-item prop="account" label="账户">
+                <el-input v-model="form.account" />
+              </el-form-item>
+              <el-form-item prop="password" label="密码">
+                <el-input v-model="form.password" />
+              </el-form-item>
+              <el-form-item prop="agree" label-width="22px">
+                <el-checkbox v-model="form.agree" size="large">
+                  我已同意隐私条款和服务条款
+                </el-checkbox>
+              </el-form-item>
+              <el-button size="large" class="subBtn">点击登录</el-button>
+            </el-form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="login-footer">
+      <div class="container">
+        <p>
+          <a href="javascript:;">关于我们</a>
+          <a href="javascript:;">帮助中心</a>
+          <a href="javascript:;">售后服务</a>
+          <a href="javascript:;">配送与验收</a>
+          <a href="javascript:;">商务合作</a>
+          <a href="javascript:;">搜索推荐</a>
+          <a href="javascript:;">友情链接</a>
+        </p>
+        <p>CopyRight &copy; 小兔鲜儿</p>
+      </div>
+    </footer>
+  </div>
+</template>
+```
+
+封装用户相关接口
+
+在apis-user.js
+
+```
+import httpInstance from '@/utils/http'
+
+export function loginAPI ({account,password}) {
+  return httpInstance({
+    url: '/login',
+    method:'POST',
+    data:{
+      account,
+      password
+    }
+  })
+}
+```
+
+实现登录在views-Login-index.vue
+
+```
+<script setup>
+import { ref } from 'vue'
+import { loginAPI } from '@/apis/user'
+import { ElMessage } from 'element-plus'
+import 'element-plus/theme-chalk/el-message.css'
+import { useRouter } from 'vue-router'
+// 表单数据对象
+const form = ref({
+  account: '12056258282',
+  password: 'hm#qd@23!',
+  agree: true
+})
+
+// 规则数据对象
+const rules = {
+  account: [
+    { required: true, message: '用户名不能为空', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '密码不能为空', trigger: 'blur' },
+    { min: 6, max: 24, message: '密码长度要求6-14个字符', trigger: 'blur' }
+  ],
+  agree: [
+    {
+      validator: (rule, val, callback) => {
+        return val ? callback() : new Error('请先同意协议')
+      }
+    }
+  ]
+}
+const formRef = ref(null)
+const router = useRouter()
+const doLogin = () => {
+  const { account, password } = form.value
+  formRef.value.validate(async (valid) => {
+    // 以valid做为判断条件 如果通过校验才执行登录逻辑
+    if (valid) {
+      const res = await loginAPI({ account, password })
+      console.log(res)
+      // 1. 提示用户
+      ElMessage({ type: 'success', message: '登录成功' })
+      // 2. 跳转首页
+      router.replace({ path: '/' })
+    }
+  })
+}
+
+</script>
+
+
+
+<template>
+  <div>
+    <header class="login-header">
+      <div class="container m-top-20">
+        <h1 class="logo">
+          <RouterLink to="/">小兔鲜</RouterLink>
+        </h1>
+        <RouterLink class="entry" to="/">
+          进入网站首页
+          <i class="iconfont icon-angle-right"></i>
+          <i class="iconfont icon-angle-right"></i>
+        </RouterLink>
+      </div>
+    </header>
+    <section class="login-section">
+      <div class="wrapper">
+        <nav>
+          <a href="javascript:;">账户登录</a>
+        </nav>
+        <div class="account-box">
+          <div class="form">
+            <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60px" status-icon>
+              <el-form-item prop="account" label="账户">
+                <el-input v-model="form.account" />
+              </el-form-item>
+              <el-form-item prop="password" label="密码">
+                <el-input v-model="form.password" />
+              </el-form-item>
+              <el-form-item prop="agree" label-width="22px">
+                <el-checkbox v-model="form.agree" size="large">
+                  我已同意隐私条款和服务条款
+                </el-checkbox>
+              </el-form-item>
+              <el-button size="large" class="subBtn" @click="doLogin">点击登录</el-button>
+            </el-form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="login-footer">
+      <div class="container">
+        <p>
+          <a href="javascript:;">关于我们</a>
+          <a href="javascript:;">帮助中心</a>
+          <a href="javascript:;">售后服务</a>
+          <a href="javascript:;">配送与验收</a>
+          <a href="javascript:;">商务合作</a>
+          <a href="javascript:;">搜索推荐</a>
+          <a href="javascript:;">友情链接</a>
+        </p>
+        <p>CopyRight &copy; 小兔鲜儿</p>
+      </div>
+    </footer>
+  </div>
+</template>
+```
+
+在utils-http.js的拦截器中配置登陆失败提示
+
+```
+// axios响应式拦截器
+httpInstance.interceptors.response.use(res => res.data, e => {
+  ElMessage({
+    type:'warning',
+    message:e.response.data.message
+  })
+  return Promise.reject(e)
+})
+```
+
+pinia管理用户数据
+
+在stores-user.js
+
+```
+// 管理用户数据相关
+
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { loginAPI } from '@/apis/user'
+
+export const useUserStore = defineStore('user', () => {
+  // 1. 定义管理用户数据的state
+  const userInfo = ref({})
+  // 2. 定义获取接口数据的action函数
+  const getUserInfo = async ({ account, password }) => {
+    const res = await loginAPI({ account, password })
+    userInfo.value = res.result
+  }
+  // 3. 以对象的格式把state和action return
+  return {
+    getUserInfo,
+    userInfo
+  }
+
+})
+```
+
+在views-Login-index.vue修改
+
+```
+import { useUserStore } from '@/stores/user'
+const userStore = useUserStore()
+
+
+const formRef = ref(null)
+const router = useRouter()
+const doLogin = () => {
+  const { account, password } = form.value
+  formRef.value.validate(async (valid) => {
+    // 以valid做为判断条件 如果通过校验才执行登录逻辑
+    if (valid) {
+      await userStore.getUserInfo({ account, password })
+      //console.log(res)
+      // 1. 提示用户
+      ElMessage({ type: 'success', message: '登录成功' })
+      // 2. 跳转首页
+      router.replace({ path: '/' })
+    }
+  })
+}
+```
+
+pinia用户数据持久化
+
+安装
+
+```
+npm i pinia-plugin-persitedstate
+```
+
+在main.js中
+
+```
+import  PiniaPluginPersistedState  from 'pinia-plugin-persistedstate'
+
+
+const pinia=createPinia()
+pinia.use(PiniaPluginPersistedState)
+```
+
+在stores-user.js
+
+```
+export const useUserStore = defineStore('user', () => {
+  // 1. 定义管理用户数据的state
+  const userInfo = ref({})
+  // 2. 定义获取接口数据的action函数
+  const getUserInfo = async ({ account, password }) => {
+    const res = await loginAPI({ account, password })
+    userInfo.value = res.result
+  }
+  // 3. 以对象的格式把state和action return
+  return {
+    getUserInfo,
+    userInfo
+  }
+}, {
+  persist: true,
+})
+```
+
+登录和非登录模板配置
+
+在views-Layout-Layoutnav.vue中
+
+```
+<script setup>
+import { useUserStore } from '@/stores/user';
+const userStore = useUserStore()
+</script>
+
+<template>
+  <nav class="app-topnav">
+    <div class="container">
+      <ul>
+        <template v-if="userStore.userInfo.token">
+          <li><a href="javascript:"><i class="iconfont icon-user"></i>{{ userStore.userInfo.account }}</a></li>
+          <li>
+            <el-popconfirm title="确认退出吗?" confirm-button-text="确认" cancel-button-text="取消">
+              <template #reference>
+                <a href="javascript:;">退出登录</a>
+              </template>
+            </el-popconfirm>
+          </li>
+          <li><a href="javascript:;">我的订单</a></li>
+          <li><a href="javascript:;">会员中心</a></li>
+        </template>
+        <template v-else>
+          <li><a href="javascript:;" @click="$router.push('/login')">请先登录</a></li>
+          <li><a href="javascript:;">帮助中心</a></li>
+          <li><a href="javascript:;">关于我们</a></li>
+        </template>
+      </ul>
+    </div>
+  </nav>
+</template>
+```
+
+请求拦截器携带token,在utils-http.js
+
+```
+// axios请求拦截器
+httpInstance.interceptors.request.use(config => {
+const userStore=useUserStore()
+const token=userStore.userInfo.token
+if(token){
+  config.headers.Authorization=`Bearer ${token}`
+}
+  return config
+}, e => Promise.reject(e))
+```
+
+退出登录
+
+在stores-user.js中清楚用户数据
+
+```
+// 管理用户数据相关
+
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { loginAPI } from '@/apis/user'
+
+export const useUserStore = defineStore('user', () => {
+  // 1. 定义管理用户数据的state
+  const userInfo = ref({})
+  // 2. 定义获取接口数据的action函数
+  const getUserInfo = async ({ account, password }) => {
+    const res = await loginAPI({ account, password })
+    userInfo.value = res.result
+  }
+  //3. 清除用户数据
+  const clearUserinfo=()=>{
+    userInfo.value={}
+  }
+  // 3. 以对象的格式把state和action return
+  return {
+    getUserInfo,
+    userInfo,
+    clearUserinfo
+  }
+}, {
+  persist: true,
+})
+```
+
+在views-Layout-Layoutnav.vue中执行,为退出登录按钮绑定confirm函数并执行
+
+```
+<script setup>
+import { useUserStore } from '@/stores/user';
+import { useRouter } from 'vue-router';
+const userStore = useUserStore()
+const router = useRouter()
+const confirm = () => {
+  userStore.clearUserinfo()
+  router.push('/login')
+}
+
+
+
+<el-popconfirm @confirm="confirm" title="确认退出吗?" confirm-button-text="确认" cancel-button-text="取消">
+              <template #reference>
+                <a href="javascript:;">退出登录</a>
+              </template>
+            </el-popconfirm>
+```
+
+token失效401拦截处理
+
+在utils-http.js
+
+```
+// axios响应式拦截器
+httpInstance.interceptors.response.use(res => res.data, e => {
+  const userStore=useUserStore()
+  ElMessage({
+    type:'warning',
+    message:e.response.data.message
+  })
+  if(e.response.status===401){
+userStore.clearUserinfo()
+router.push('/login')
+  }
+  return Promise.reject(e)
+})
+```
+
