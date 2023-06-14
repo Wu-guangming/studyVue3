@@ -4949,3 +4949,1112 @@ router.push('/login')
 })
 ```
 
+# 购物车
+
+封装购物车模块
+
+在stores-cartStore.js
+
+```
+import { defineStore } from "pinia";
+import { ref } from "vue";
+
+export const useCartStore=defineStore('cart',()=>{
+  const cartList=ref([])
+  const addCart=(goods)=>{
+    console.log('添加', goods)
+    // 添加购物车操作
+    // 已添加过 - count + 1
+    // 没有添加过 - 直接push
+    // 思路：通过匹配传递过来的商品对象中的skuId能不能在cartList中找到，找到了就是添加过
+    const item = cartList.value.find((item) => goods.skuId === item.skuId)
+    if (item) {
+      // 找到了
+      item.count++
+    } else {
+      // 没找到
+      cartList.value.push(goods)
+    }
+  }
+  return{
+    cartList,
+    addCart
+  }
+}, {
+  persist: true,
+})
+```
+
+在views-Detail-index.vue
+
+```
+<script setup>
+
+import { getDetailAPI } from '@/apis/detail'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import DetailHot from '@/views/Detail/components/DetailHot.vue'
+import { ElMessage } from 'element-plus';
+import { useCartStore } from '@/stores/cartStore'
+const cartStore = useCartStore()
+const goods = ref({})
+const route = useRoute()
+const getGoods = async () => {
+  const res = await getDetailAPI(route.params.id)
+  //console.log(res)
+  goods.value = res.result
+}
+onMounted(() => getGoods())
+let skuObj = {}
+const skuChange = (sku) => {
+  console.log(sku)
+  skuObj = sku
+}
+const count = ref(1)
+const countChange = () => {
+  console.log(count.value)
+}
+
+const addCart = () => {
+  if (skuObj.skuId) {
+    cartStore.addCart({
+      id: goods.value.id,
+      name: goods.value.name,
+      picture: goods.value.mainPictures[0],
+      price: goods.value.price,
+      count: count.value,
+      skuId: skuObj.skuId,
+      attrsText: skuObj.specsText,
+      selected: true
+    })
+  } else {
+    ElMessage.warning('请选择规格')
+  }
+}
+</script>
+
+<template>
+  <div class="xtx-goods-page">
+    <div class="container" v-if="goods.details">
+      <div class="bread-container">
+        <el-breadcrumb separator=">">
+          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+          <!-- 
+            错误原因：goods一开始{}  {}.categories -> undefined  -> undefined[1]
+            1. 可选链的语法?. 
+            2. v-if手动控制渲染时机 保证只有数据存在才渲染
+           -->
+          <el-breadcrumb-item :to="{ path: `/category/${goods.categories[1].id}` }">{{ goods.categories[1].name }}
+          </el-breadcrumb-item>
+          <el-breadcrumb-item :to="{ path: `/category/sub/${goods.categories[0].id}` }">{{
+            goods.categories[0].name
+          }}
+          </el-breadcrumb-item>
+          <el-breadcrumb-item>抓绒保暖，毛毛虫子儿童运动鞋</el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
+      <!-- 商品信息 -->
+      <div class="info-container">
+        <div>
+          <div class="goods-info">
+            <div class="media">
+              <!-- 图片预览区 -->
+              <XtxImageView :image-list="goods.mainPictures"></XtxImageView>
+              <!-- 统计数量 -->
+              <ul class="goods-sales">
+                <li>
+                  <p>销量人气</p>
+                  <p> {{ goods.salesCount }}+ </p>
+                  <p><i class="iconfont icon-task-filling"></i>销量人气</p>
+                </li>
+                <li>
+                  <p>商品评价</p>
+                  <p>{{ goods.commentCount }}+</p>
+                  <p><i class="iconfont icon-comment-filling"></i>查看评价</p>
+                </li>
+                <li>
+                  <p>收藏人气</p>
+                  <p>{{ goods.collectCount }}+</p>
+                  <p><i class="iconfont icon-favorite-filling"></i>收藏商品</p>
+                </li>
+                <li>
+                  <p>品牌信息</p>
+                  <p>{{ goods.brand.name }}</p>
+                  <p><i class="iconfont icon-dynamic-filling"></i>品牌主页</p>
+                </li>
+              </ul>
+            </div>
+            <div class="spec">
+              <!-- 商品信息区 -->
+              <p class="g-name"> {{ goods.name }} </p>
+              <p class="g-desc">{{ goods.desc }} </p>
+              <p class="g-price">
+                <span>{{ goods.oldPrice }}</span>
+                <span> {{ goods.price }}</span>
+              </p>
+              <div class="g-service">
+                <dl>
+                  <dt>促销</dt>
+                  <dd>12月好物放送，App领券购买直降120元</dd>
+                </dl>
+                <dl>
+                  <dt>服务</dt>
+                  <dd>
+                    <span>无忧退货</span>
+                    <span>快速退款</span>
+                    <span>免费包邮</span>
+                    <a href="javascript:;">了解详情</a>
+                  </dd>
+                </dl>
+              </div>
+              <!-- sku组件 -->
+              <XtxSku :goods="goods" @change="skuChange"></XtxSku>
+              <!-- 数据组件 -->
+              <el-input-number v-model="count" @change="countChange"></el-input-number>
+              <!-- 按钮组件 -->
+              <div>
+                <el-button size="large" class="btn" @click="addCart">
+                  加入购物车
+                </el-button>
+              </div>
+
+            </div>
+          </div>
+          <div class="goods-footer">
+            <div class="goods-article">
+              <!-- 商品详情 -->
+              <div class="goods-tabs">
+                <nav>
+                  <a>商品详情</a>
+                </nav>
+                <div class="goods-detail">
+                  <!-- 属性 -->
+                  <ul class="attrs">
+                    <li v-for="item in goods.details.properties" :key="item.value">
+                      <span class="dt">{{ item.name }}</span>
+                      <span class="dd">{{ item.value }}</span>
+                    </li>
+                  </ul>
+                  <!-- 图片 -->
+                  <img v-for="img in goods.details.pictures" :src="img" :key="img" alt="">
+                </div>
+              </div>
+            </div>
+            <!-- 24热榜+专题推荐 -->
+            <div class="goods-aside">
+              <DetailHot :hot-type="1"></DetailHot>
+              <DetailHot :hot-type="2"></DetailHot>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+头部购物车渲染
+
+准备组件在views-Layout-components-HeaderCart.vue
+
+```
+<script setup>
+import { useCartStore } from '@/stores/cartStore'
+const cartStore = useCartStore()
+
+</script>
+
+<template>
+  <div class="cart">
+    <a class="curr" href="javascript:;">
+      <i class="iconfont icon-cart"></i><em>{{ cartStore.cartList.length }}</em>
+    </a>
+    <div class="layer">
+      <div class="list">
+        <div class="item" v-for="i in cartStore.cartList" :key="i">
+          <RouterLink to="">
+            <img :src="i.picture" alt="" />
+            <div class="center">
+              <p class="name ellipsis-2">
+                {{ i.name }}
+              </p>
+              <p class="attr ellipsis">{{ i.attrsText }}</p>
+            </div>
+            <div class="right">
+              <p class="price">&yen;{{ i.price }}</p>
+              <p class="count">x{{ i.count }}</p>
+            </div>
+          </RouterLink>
+          <i class="iconfont icon-close-new" @click="store.delCart(i.skuId)"></i>
+        </div>
+      </div>
+      <div class="foot">
+        <div class="total">
+          <p>共 10 件商品</p>
+          <p>&yen; 100.00 </p>
+        </div>
+        <el-button size="large" type="primary">去购物车结算</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.cart {
+  width: 50px;
+  position: relative;
+  z-index: 600;
+
+  .curr {
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    position: relative;
+    display: block;
+
+    .icon-cart {
+      font-size: 22px;
+    }
+
+    em {
+      font-style: normal;
+      position: absolute;
+      right: 0;
+      top: 0;
+      padding: 1px 6px;
+      line-height: 1;
+      background: $helpColor;
+      color: #fff;
+      font-size: 12px;
+      border-radius: 10px;
+      font-family: Arial;
+    }
+  }
+
+  &:hover {
+    .layer {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .layer {
+    opacity: 0;
+    transition: all 0.4s 0.2s;
+    transform: translateY(-200px) scale(1, 0);
+    width: 400px;
+    height: 400px;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    border-radius: 4px;
+    padding-top: 10px;
+
+    &::before {
+      content: "";
+      position: absolute;
+      right: 14px;
+      top: -10px;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      transform: scale(0.6, 1) rotate(45deg);
+      box-shadow: -3px -3px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .foot {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 70px;
+      width: 100%;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      background: #f8f8f8;
+      align-items: center;
+
+      .total {
+        padding-left: 10px;
+        color: #999;
+
+        p {
+          &:last-child {
+            font-size: 18px;
+            color: $priceColor;
+          }
+        }
+      }
+    }
+  }
+
+  .list {
+    height: 310px;
+    overflow: auto;
+    padding: 0 10px;
+
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f8f8f8;
+      border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #eee;
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #ccc;
+    }
+
+    .item {
+      border-bottom: 1px solid #f5f5f5;
+      padding: 10px 0;
+      position: relative;
+
+      i {
+        position: absolute;
+        bottom: 38px;
+        right: 0;
+        opacity: 0;
+        color: #666;
+        transition: all 0.5s;
+      }
+
+      &:hover {
+        i {
+          opacity: 1;
+          cursor: pointer;
+        }
+      }
+
+      a {
+        display: flex;
+        align-items: center;
+
+        img {
+          height: 80px;
+          width: 80px;
+        }
+
+        .center {
+          padding: 0 10px;
+          width: 200px;
+
+          .name {
+            font-size: 16px;
+          }
+
+          .attr {
+            color: #999;
+            padding-top: 5px;
+          }
+        }
+
+        .right {
+          width: 100px;
+          padding-right: 20px;
+          text-align: center;
+
+          .price {
+            font-size: 16px;
+            color: $priceColor;
+          }
+
+          .count {
+            color: #999;
+            margin-top: 5px;
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+}
+</style>
+```
+
+在views-Layout-components-LayoutHeader.vue使用组件
+
+```
+import HeaderCart from './HeaderCart.vue';
+
+
+<!-- 头部购物车 -->
+      <HeaderCart></HeaderCart>
+```
+
+删除功能在stores-cartStore.js
+
+```
+const delCart=(skuId)=>{
+    const idx = cartList.value.findIndex((item) => skuId === item.skuId)
+    cartList.value.splice(idx, 1)
+  }
+```
+
+在views-Layout-components-HeaderCart.vue使用
+
+```
+<i class="iconfont icon-close-new" @click="cartStore.delCart(i.skuId)"></i>
+```
+
+统计功能在stores-cartStore.js
+
+```
+const allCount= computed(()=>cartList.value.reduce((a,c)=>a+c.count,0))
+  const allPrice= computed(()=>cartList.value.reduce((a,c)=>a+c.count*c.price,0))
+```
+
+在views-Layout-components-HeaderCart.vue使用
+
+```
+<div class="total">
+          <p>共 {{ cartStore.allCount }} 件商品</p>
+          <p>&yen; {{ cartStore.allPrice }} </p>
+        </div>
+```
+
+购物车基础数据渲染模板准备
+
+在views-CartList-index.vue
+
+```
+<script setup>
+const cartList = []
+</script>
+
+<template>
+  <div class="xtx-cart-page">
+    <div class="container m-top-20">
+      <div class="cart">
+        <table>
+          <thead>
+            <tr>
+              <th width="120">
+                <el-checkbox />
+              </th>
+              <th width="400">商品信息</th>
+              <th width="220">单价</th>
+              <th width="180">数量</th>
+              <th width="180">小计</th>
+              <th width="140">操作</th>
+            </tr>
+          </thead>
+          <!-- 商品列表 -->
+          <tbody>
+            <tr v-for="i in cartList" :key="i.id">
+              <td>
+                <el-checkbox />
+              </td>
+              <td>
+                <div class="goods">
+                  <RouterLink to="/"><img :src="i.picture" alt="" /></RouterLink>
+                  <div>
+                    <p class="name ellipsis">
+                      {{ i.name }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td class="tc">
+                <p>&yen;{{ i.price }}</p>
+              </td>
+              <td class="tc">
+                <el-input-number v-model="i.count" />
+              </td>
+              <td class="tc">
+                <p class="f16 red">&yen;{{ (i.price * i.count).toFixed(2) }}</p>
+              </td>
+              <td class="tc">
+                <p>
+                  <el-popconfirm title="确认删除吗?" confirm-button-text="确认" cancel-button-text="取消" @confirm="delCart(i)">
+                    <template #reference>
+                      <a href="javascript:;">删除</a>
+                    </template>
+                  </el-popconfirm>
+                </p>
+              </td>
+            </tr>
+            <tr v-if="cartList.length === 0">
+              <td colspan="6">
+                <div class="cart-none">
+                  <el-empty description="购物车列表为空">
+                    <el-button type="primary">随便逛逛</el-button>
+                  </el-empty>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+
+        </table>
+      </div>
+      <!-- 操作栏 -->
+      <div class="action">
+        <div class="batch">
+          共 10 件商品，已选择 2 件，商品合计：
+          <span class="red">¥ 200.00 </span>
+        </div>
+        <div class="total">
+          <el-button size="large" type="primary">下单结算</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.xtx-cart-page {
+  margin-top: 20px;
+
+  .cart {
+    background: #fff;
+    color: #666;
+
+    table {
+      border-spacing: 0;
+      border-collapse: collapse;
+      line-height: 24px;
+
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #f5f5f5;
+
+        &:first-child {
+          text-align: left;
+          padding-left: 30px;
+          color: #999;
+        }
+      }
+
+      th {
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 50px;
+      }
+    }
+  }
+
+  .cart-none {
+    text-align: center;
+    padding: 120px 0;
+    background: #fff;
+
+    p {
+      color: #999;
+      padding: 20px 0;
+    }
+  }
+
+  .tc {
+    text-align: center;
+
+    a {
+      color: $xtxColor;
+    }
+
+    .xtx-numbox {
+      margin: 0 auto;
+      width: 120px;
+    }
+  }
+
+  .red {
+    color: $priceColor;
+  }
+
+  .green {
+    color: $xtxColor;
+  }
+
+  .f16 {
+    font-size: 16px;
+  }
+
+  .goods {
+    display: flex;
+    align-items: center;
+
+    img {
+      width: 100px;
+      height: 100px;
+    }
+
+    >div {
+      width: 280px;
+      font-size: 16px;
+      padding-left: 10px;
+
+      .attr {
+        font-size: 14px;
+        color: #999;
+      }
+    }
+  }
+
+  .action {
+    display: flex;
+    background: #fff;
+    margin-top: 20px;
+    height: 80px;
+    align-items: center;
+    font-size: 16px;
+    justify-content: space-between;
+    padding: 0 30px;
+
+    .xtx-checkbox {
+      color: #999;
+    }
+
+    .batch {
+      a {
+        margin-left: 20px;
+      }
+    }
+
+    .red {
+      font-size: 18px;
+      margin-right: 20px;
+      font-weight: bold;
+    }
+  }
+
+  .tit {
+    color: #666;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 50px;
+  }
+
+}
+</style>
+```
+
+在router-index.js中绑定路由
+
+```
+{
+          path:"cartlist",
+          component:CartList
+        }
+```
+
+在views-Layout-components-HeaderCart.vue使用
+
+```
+ <el-button size="large" type="primary" @click="$router.push('/cartlist')">去购物车结算</el-button>
+```
+
+数据渲染在views-CartList-index.vue
+
+```
+<script setup>
+import { useCartStore } from '@/stores/cartStore'
+const cartStore = useCartStore()
+</script>
+
+<template>
+  <div class="xtx-cart-page">
+    <div class="container m-top-20">
+      <div class="cart">
+        <table>
+          <thead>
+            <tr>
+              <th width="120">
+                <el-checkbox />
+              </th>
+              <th width="400">商品信息</th>
+              <th width="220">单价</th>
+              <th width="180">数量</th>
+              <th width="180">小计</th>
+              <th width="140">操作</th>
+            </tr>
+          </thead>
+          <!-- 商品列表 -->
+          <tbody>
+            <tr v-for="i in cartStore.cartList" :key="i.id">
+              <td>
+                <el-checkbox />
+              </td>
+              <td>
+                <div class="goods">
+                  <RouterLink to="/"><img :src="i.picture" alt="" /></RouterLink>
+                  <div>
+                    <p class="name ellipsis">
+                      {{ i.name }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td class="tc">
+                <p>&yen;{{ i.price }}</p>
+              </td>
+              <td class="tc">
+                <el-input-number v-model="i.count" />
+              </td>
+              <td class="tc">
+                <p class="f16 red">&yen;{{ (i.price * i.count).toFixed(2) }}</p>
+              </td>
+              <td class="tc">
+                <p>
+                  <el-popconfirm title="确认删除吗?" confirm-button-text="确认" cancel-button-text="取消" @confirm="delCart(i)">
+                    <template #reference>
+                      <a href="javascript:;">删除</a>
+                    </template>
+                  </el-popconfirm>
+                </p>
+              </td>
+            </tr>
+            <tr v-if="cartStore.cartList.length === 0">
+              <td colspan="6">
+                <div class="cart-none">
+                  <el-empty description="购物车列表为空">
+                    <el-button type="primary">随便逛逛</el-button>
+                  </el-empty>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+
+        </table>
+      </div>
+      <!-- 操作栏 -->
+      <div class="action">
+        <div class="batch">
+          共 10 件商品，已选择 2 件，商品合计：
+          <span class="red">¥ 200.00 </span>
+        </div>
+        <div class="total">
+          <el-button size="large" type="primary">下单结算</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+列表购物车单选效果
+
+在stores-cartStore.js中加入单选功能
+
+```
+  // 单选功能
+const singleCheck = (skuId, selected) => {
+  // 通过skuId找到要修改的那一项 然后把它的selected修改为传过来的selected
+  const item = cartList.value.find((item) => item.skuId === skuId)
+  item.selected = selected
+}
+```
+
+接着在views-CartList-index.vue
+
+```
+<script setup>
+import { useCartStore } from '@/stores/cartStore'
+const cartStore = useCartStore()
+
+const singleCheck = (i, selected) => {
+  //console.log(i, selected)
+  cartStore.singleCheck(i.skuId, selected)
+}
+</script>
+
+
+<!-- 单选框 -->
+                <el-checkbox :model-value="i.selected" @change="(selected) => singleCheck(i, selected)" />
+```
+
+全选功能
+
+在stores-cartStore.js中添加全选功能
+
+```
+// 是否全选计算属性
+const isAll = computed(() => cartList.value.every((item) => item.selected))
+// 全选功能action
+const allCheck = (selected) => {
+  // 把cartList中的每一项的selected都设置为当前的全选框状态
+  cartList.value.forEach(item => item.selected = selected)
+}
+```
+
+接着在views-CartList-index.vue
+
+```
+const allCheck = (selected) => {
+  cartStore.allCheck(selected)
+}
+
+
+
+<th width="120">
+                <el-checkbox :model-value="cartStore.isAll" @change="allCheck" />
+              </th>
+```
+
+列表统计在stores-cartStore.js中添加全选功能
+
+```
+// 3. 已选择数量
+const selectedCount = computed(() => cartList.value.filter(item => item.selected).reduce((a, c) => a + c.count, 0))
+// 4. 已选择商品价钱合计
+const selectedPrice = computed(() => cartList.value.filter(item => item.selected).reduce((a, c) => a + c.count * c.price, 0))
+```
+
+接着在views-CartList-index.vue
+
+```
+ <!-- 操作栏 -->
+      <div class="action">
+        <div class="batch">
+          共 {{ cartStore.allCount }} 件商品，已选择 {{ cartStore.selectedCount }} 件，商品合计：
+          <span class="red">¥ {{ cartStore.selectedPrice.toFixed(2) }} </span>
+        </div>
+        <div class="total">
+          <el-button size="large" type="primary">下单结算</el-button>
+        </div>
+      </div>
+```
+
+接口购物车
+
+在stores-cartStore.js判断是否登录状态,执行不同的逻辑
+
+```
+
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
+import { useUserStore } from "./user";
+import { insertCartAPI,findNewCartListAPI } from "@/apis/cart";
+export const useCartStore= defineStore('cart',()=>{
+  const userStore=useUserStore()
+  const isLogin=computed(()=>userStore.userInfo.token)
+
+  const cartList=ref([])
+  const addCart=async(goods)=>{
+    const {count,skuId}=goods
+    if(isLogin.value){
+      await insertCartAPI({count,skuId})
+      const res=await findNewCartListAPI()
+      cartList.value=res.result
+    }else{
+//console.log('添加', goods)
+    // 添加购物车操作
+    // 已添加过 - count + 1
+    // 没有添加过 - 直接push
+    // 思路：通过匹配传递过来的商品对象中的skuId能不能在cartList中找到，找到了就是添加过
+    const item = cartList.value.find((item) => goods.skuId === item.skuId)
+    if (item) {
+      // 找到了
+      item.count++
+    } else {
+      // 没找到
+      cartList.value.push(goods)
+    }
+    }
+    
+  }
+  const delCart=(skuId)=>{
+    const idx = cartList.value.findIndex((item) => skuId === item.skuId)
+    cartList.value.splice(idx, 1)
+  }
+  const allCount= computed(()=>cartList.value.reduce((a,c)=>a+c.count,0))
+  const allPrice= computed(()=>cartList.value.reduce((a,c)=>a+c.count*c.price,0))
+
+
+  // 单选功能
+const singleCheck = (skuId, selected) => {
+  // 通过skuId找到要修改的那一项 然后把它的selected修改为传过来的selected
+  const item = cartList.value.find((item) => item.skuId === skuId)
+  item.selected = selected
+}
+// 是否全选计算属性
+const isAll = computed(() => cartList.value.every((item) => item.selected))
+// 全选功能action
+const allCheck = (selected) => {
+  // 把cartList中的每一项的selected都设置为当前的全选框状态
+  cartList.value.forEach(item => item.selected = selected)
+}
+// 3. 已选择数量
+const selectedCount = computed(() => cartList.value.filter(item => item.selected).reduce((a, c) => a + c.count, 0))
+// 4. 已选择商品价钱合计
+const selectedPrice = computed(() => cartList.value.filter(item => item.selected).reduce((a, c) => a + c.count * c.price, 0))
+  return{
+    cartList,
+    addCart,
+    delCart,
+    allCount,
+    allPrice,
+    singleCheck,
+    isAll,
+    allCheck,
+    selectedCount,
+    selectedPrice
+  }
+}, {
+  persist: true,
+})
+```
+
+在apis-cart.js封装接口
+
+```
+import httpInstance from "@/utils/http"
+// 加入购物车
+export const insertCartAPI = ({ skuId, count }) => {
+  return httpInstance({
+    url: '/member/cart',
+    method: 'POST',
+    data: {
+      skuId,
+      count
+    }
+  })
+}
+export const findNewCartListAPI=()=>{
+  return httpInstance({
+    url:'/member/cart'
+  })
+}
+```
+
+在stores-cartStore.js中封装一个获取最新购物车列表功能
+
+```
+//获取最新购物车列表
+const updateNewList=async()=>{
+  const res=await findNewCartListAPI()
+  cartList.value=res.result
+}
+```
+
+删除购物车
+
+在apis-cart.js封装接口
+
+```
+// 删除购物车
+export const delCartAPI = (ids) => {
+  return httpInstance({
+    url: '/member/cart',
+    method: 'DELETE',
+    data: {
+      ids
+    }
+  })
+}
+```
+
+在stores-cartStore.js判断是否登录状态,执行不同的逻辑
+
+```
+// 删除购物车
+ const delCart = async (skuId) => {
+  if (isLogin.value) {
+    // 调用接口实现接口购物车中的删除功能
+    await delCartAPI([skuId])
+    const res=await findNewCartListAPI()
+    cartList.value=res.result
+  } else {
+    // 思路：
+    // 1. 找到要删除项的下标值 - splice
+    // 2. 使用数组的过滤方法 - filter
+    const idx = cartList.value.findIndex((item) => skuId === item.skuId)
+    cartList.value.splice(idx, 1)
+  }
+}
+```
+
+退出登录时,清空购物车数据
+
+在stores-cartStore.js新增清除购物车功能
+
+```
+//清除购物车
+const clearCart=()=>{
+  cartList.value=[]
+}
+```
+
+在stores-user.js中加入退出登录清除购物车信息,记的引入
+
+```
+//3. 清除用户数据
+  const clearUserinfo=()=>{
+    userInfo.value={}
+    //清除购物车数据
+    cartStore.clearCart()
+  }
+```
+
+合并购物车
+
+在apis-cart.js封装接口
+
+```
+//合并购物车
+export const mergeCartAPI=(data)=>{
+  return httpInstance({
+    url:'/member/cart/merge',
+    method:'POST',
+    data
+  })
+}
+```
+
+在stores-user.js
+
+```
+// 管理用户数据相关
+
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { loginAPI } from '@/apis/user'
+import { useCartStore } from './cartStore'
+import { mergeCartAPI } from '@/apis/cart'
+export const useUserStore = defineStore('user', () => {
+  const cartStore=useCartStore()
+  // 1. 定义管理用户数据的state
+  const userInfo = ref({})
+  // 2. 定义获取接口数据的action函数
+  const getUserInfo = async ({ account, password }) => {
+    const res = await loginAPI({ account, password })
+    userInfo.value = res.result
+    //合并购物车
+    await mergeCartAPI(cartStore.cartList.map(item=>{
+      return{
+        skuId:item.skuId,
+        selected:item.selected,
+        count:item.count
+      }
+    }))
+    cartStore.updateNewList
+  }
+
+
+  //3. 清除用户数据
+  const clearUserinfo=()=>{
+    userInfo.value={}
+    //清除购物车数据
+    cartStore.clearCart()
+  }
+  // 3. 以对象的格式把state和action return
+  return {
+    getUserInfo,
+    userInfo,
+    clearUserinfo
+  }
+}, {
+  persist: true,
+})
+```
+
+# 结算
